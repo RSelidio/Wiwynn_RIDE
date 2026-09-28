@@ -1,0 +1,32 @@
+{
+  "name": "Company Shuttle",
+  "short_name": "Shuttle",
+  "description": "Request a company shuttle pickup and track its arrival.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f9fb",
+  "theme_color": "#006090",
+  "lang": "en",
+  "categories": ["travel", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Request pickup", "url": "/" },
+    { "name": "All shuttles", "url": "/shuttles" },
+    { "name": "My trips", "url": "/trips" }
+  ]
+}

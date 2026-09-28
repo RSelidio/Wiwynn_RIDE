@@ -1,0 +1,280 @@
+# Azure DevOps pipeline (spec §16).
+#
+# Build and test once, then deploy the same artifact to DEV and, after an
+# approval gate, to PROD. Nothing is rebuilt per environment — the bits that
+# passed the tests are the bits that ship.
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - docs/**
+      - '**/*.md'
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+variables:
+  - name: NODE_VERSION
+    value: '20.x'
+  - name: npm_config_cache
+    value: $(Pipeline.Workspace)/.npm
+
+stages:
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: Build
+    displayName: Build and test
+    jobs:
+      - job: BuildWeb
+        displayName: Backend, employee PWA, admin
+        pool:
+          vmImage: windows-latest
+
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node $(NODE_VERSION)
+            inputs:
+              versionSpec: $(NODE_VERSION)
+
+          # Cache keyed on the lock file: a dependency change invalidates it,
+          # anything else reuses it.
+          - task: Cache@2
+            displayName: Cache npm
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: $(npm_config_cache)
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: npm run build:packages
+            displayName: Build shared packages
+
+          - script: npm run build -w @shuttle/backend
+            displayName: Build backend
+
+          # The frontends inline NEXT_PUBLIC_* at build time, so these must be
+          # the values the browser will actually use — set them per environment
+          # in a variable group, not here.
+          - script: npm run build -w @shuttle/employee
+            displayName: Build employee PWA
+            env:
+              NEXT_PUBLIC_API_URL: $(NEXT_PUBLIC_API_URL)
+              NEXT_PUBLIC_SOCKET_URL: $(NEXT_PUBLIC_SOCKET_URL)
+
+          - script: npm run build -w @shuttle/admin
+            displayName: Build admin dashboard
+            env:
+              NEXT_PUBLIC_API_URL: $(NEXT_PUBLIC_API_URL)
+              NEXT_PUBLIC_SOCKET_URL: $(NEXT_PUBLIC_SOCKET_URL)
+
+          # Next.js generates next-env.d.ts during its build. Typecheck only
+          # after both web apps have built so clean CI agents have that file.
+          - script: npm run typecheck
+            displayName: Typecheck all workspaces
+
+          - script: npm run test --if-present
+            displayName: Run tests
+
+          - task: ArchiveFiles@2
+            displayName: Package release
+            inputs:
+              rootFolderOrFile: $(Build.SourcesDirectory)
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/shuttle-$(Build.BuildId).zip
+              # node_modules is reinstalled on the server with --omit=dev, and
+              # shipping it would bloat the artifact and mix dev dependencies in.
+              replaceExistingArchive: true
+
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: release
+            displayName: Publish artifact
+
+      - job: BuildDriver
+        displayName: Driver app (EAS)
+        pool:
+          vmImage: ubuntu-latest
+        # The driver app ships through EAS on demand, not on every commit —
+        # an Android build takes far longer than the web apps and the APK is
+        # distributed to a handful of company tablets.
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['BUILD_DRIVER'], 'true'))
+
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(NODE_VERSION)
+
+          - script: npm ci
+            displayName: Install workspace dependencies
+
+          - script: npm run build:packages
+            displayName: Build shared packages
+
+          - script: npm install
+            workingDirectory: apps/driver
+            displayName: Install driver dependencies
+
+          - script: npx tsc --noEmit
+            workingDirectory: apps/driver
+            displayName: Typecheck driver app
+
+          - script: npx eas-cli build --platform android --profile production --non-interactive --no-wait
+            workingDirectory: apps/driver
+            displayName: Queue Android build
+            env:
+              EXPO_TOKEN: $(EXPO_TOKEN)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: DeployDev
+    displayName: Deploy to DEV
+    dependsOn: Build
+    condition: and(succeeded(), in(variables['Build.SourceBranch'], 'refs/heads/develop', 'refs/heads/main'))
+    jobs:
+      - deployment: DeployDev
+        environment: shuttle-dev
+        pool:
+          vmImage: windows-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: release
+
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  displayName: Unpack release
+                  inputs:
+                    WebSiteName: $(DEV_IIS_SITE)
+                    Package: $(Pipeline.Workspace)/release/*.zip
+
+                - task: PowerShell@2
+                  displayName: Install, migrate and restart
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Set-Location $env:DEV_DEPLOY_PATH
+                      npm ci --omit=dev
+                      # Migrations run before the new code starts, so the
+                      # schema is never behind the application.
+                      npm run db:migrate
+                      pm2 startOrReload ecosystem.config.js --env production
+                      pm2 save
+                  env:
+                    DEV_DEPLOY_PATH: $(DEV_DEPLOY_PATH)
+                    PGHOST: $(DEV_PGHOST)
+                    PGDATABASE: $(DEV_PGDATABASE)
+                    PGUSER: $(DEV_PGUSER)
+                    PGPASSWORD: $(DEV_PGPASSWORD)
+                    JWT_SECRET: $(DEV_JWT_SECRET)
+
+                - task: PowerShell@2
+                  displayName: Smoke test
+                  inputs:
+                    targetType: inline
+                    script: |
+                      # Readiness, not liveness: this one checks PostgreSQL too.
+                      $url = "$env:DEV_BASE_URL/api/health/ready"
+                      for ($i = 1; $i -le 10; $i++) {
+                        try {
+                          $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+                          if ($r.StatusCode -eq 200) { Write-Host "Ready."; exit 0 }
+                        } catch {
+                          Write-Host "Attempt $i failed; retrying..."
+                        }
+                        Start-Sleep -Seconds 6
+                      }
+                      Write-Error "Service did not become ready."
+                      exit 1
+                  env:
+                    DEV_BASE_URL: $(DEV_BASE_URL)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - stage: DeployProd
+    displayName: Deploy to PROD
+    dependsOn: DeployDev
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployProd
+        # Configure this environment with a manual approval check in Azure
+        # DevOps — that gate is what makes this stage safe to auto-trigger.
+        environment: shuttle-prod
+        pool:
+          vmImage: windows-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: release
+
+                - task: PowerShell@2
+                  displayName: Back up the database
+                  inputs:
+                    targetType: inline
+                    script: |
+                      $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+                      $out = Join-Path $env:PROD_BACKUP_PATH "shuttle-$stamp.dump"
+                      & pg_dump --format=custom --file=$out
+                      if ($LASTEXITCODE -ne 0) { Write-Error "Backup failed"; exit 1 }
+                      Write-Host "Backed up to $out"
+                  env:
+                    PROD_BACKUP_PATH: $(PROD_BACKUP_PATH)
+                    PGHOST: $(PROD_PGHOST)
+                    PGDATABASE: $(PROD_PGDATABASE)
+                    PGUSER: $(PROD_PGUSER)
+                    PGPASSWORD: $(PROD_PGPASSWORD)
+
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  displayName: Unpack release
+                  inputs:
+                    WebSiteName: $(PROD_IIS_SITE)
+                    Package: $(Pipeline.Workspace)/release/*.zip
+
+                - task: PowerShell@2
+                  displayName: Install, migrate and reload
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Set-Location $env:PROD_DEPLOY_PATH
+                      npm ci --omit=dev
+                      npm run db:migrate
+                      # startOrReload keeps the old process serving until the
+                      # new one is up, so a deploy does not drop connections.
+                      pm2 startOrReload ecosystem.config.js --env production
+                      pm2 save
+                  env:
+                    PROD_DEPLOY_PATH: $(PROD_DEPLOY_PATH)
+                    PGHOST: $(PROD_PGHOST)
+                    PGDATABASE: $(PROD_PGDATABASE)
+                    PGUSER: $(PROD_PGUSER)
+                    PGPASSWORD: $(PROD_PGPASSWORD)
+                    JWT_SECRET: $(PROD_JWT_SECRET)
+
+                - task: PowerShell@2
+                  displayName: Smoke test
+                  inputs:
+                    targetType: inline
+                    script: |
+                      $url = "$env:PROD_BASE_URL/api/health/ready"
+                      for ($i = 1; $i -le 10; $i++) {
+                        try {
+                          $r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+                          if ($r.StatusCode -eq 200) { Write-Host "Ready."; exit 0 }
+                        } catch {
+                          Write-Host "Attempt $i failed; retrying..."
+                        }
+                        Start-Sleep -Seconds 6
+                      }
+                      Write-Error "Service did not become ready. Roll back with: pm2 reload ecosystem.config.js"
+                      exit 1
+                  env:
+                    PROD_BASE_URL: $(PROD_BASE_URL)

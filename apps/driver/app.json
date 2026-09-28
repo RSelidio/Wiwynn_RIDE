@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "Shuttle Driver",
+    "slug": "shuttle-driver",
+    "version": "0.1.0",
+    "orientation": "default",
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "shuttledriver",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f7f9fb",
+    "primaryColor": "#006090",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.wiwynn.shuttledriver",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#006090"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "WAKE_LOCK"
+      ],
+      "blockedPermissions": [
+        "RECORD_AUDIO",
+        "CAMERA"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.wiwynn.shuttledriver",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ],
+        "NSLocationWhenInUseUsageDescription": "Your shuttle's position is shared with waiting employees while your shift is active.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Your shuttle's position is shared with waiting employees while your shift is active, including when the app is in the background.",
+        "NSLocationAlwaysUsageDescription": "Your shuttle's position is shared with waiting employees while your shift is active."
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "locationAlwaysAndWhenInUsePermission": "Your shuttle's position is shared with waiting employees while your shift is active.",
+          "locationWhenInUsePermission": "Your shuttle's position is shared with waiting employees while your shift is active."
+        }
+      ],
+      "expo-secure-store",
+      "expo-asset",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#006090",
+          "resizeMode": "contain"
+        }
+      ]
+    ],
+    "extra": {
+      "//": "Set these per environment. EAS build profiles override them; see eas.json.",
+      "apiUrl": "http://192.168.1.106:4000",
+      "socketUrl": "http://192.168.1.106:4000",
+      "androidEmulatorApiUrl": "http://10.0.2.2:4000",
+      "androidEmulatorSocketUrl": "http://10.0.2.2:4000"
+    }
+  }
+}

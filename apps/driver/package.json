@@ -1,0 +1,42 @@
+{
+  "name": "@shuttle/driver",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Driver mobile app — shift control, pickup queue and GPS tracking (Expo, Android-first)",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "prebuild": "expo prebuild",
+    "build:android": "eas build --platform android --profile production",
+    "typecheck": "tsc --noEmit",
+    "doctor": "npx expo-doctor"
+  },
+  "dependencies": {
+    "@shuttle/shared-types": "file:../../packages/shared-types",
+    "@shuttle/shared-utils": "file:../../packages/shared-utils",
+    "@shuttle/ui": "file:../../packages/ui",
+    "@types/react": "~19.2.10",
+    "expo": "^57.0.0",
+    "expo-asset": "~57.0.18",
+    "expo-constants": "~57.0.19",
+    "expo-device": "~57.0.2",
+    "expo-keep-awake": "~57.0.2",
+    "expo-location": "~57.0.20",
+    "expo-secure-store": "~57.0.4",
+    "expo-splash-screen": "~57.0.9",
+    "expo-status-bar": "~57.0.1",
+    "expo-task-manager": "~57.0.20",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-web": "^0.21.2",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}

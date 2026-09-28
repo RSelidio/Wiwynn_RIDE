@@ -1,0 +1,61 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# env — never commit real secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pm2.log
+pm2-error.log
+
+# expo / react native
+apps/driver/.expo/
+apps/driver/.expo-shared/
+apps/driver/android/
+apps/driver/ios/
+apps/driver/web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# editors / os
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# database dumps
+*.dump
+*.backup
+*.pgdump
+*.sql.gz
+database/backups/
+
+# local OSRM extracts and generated routing graphs
+.osrm-data/

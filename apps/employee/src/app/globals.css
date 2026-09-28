@@ -1,0 +1,61 @@
+@import '@shuttle/ui/styles.css';
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  /* Mirrors lightTheme in @shuttle/ui/tokens. */
+  --page: #f7f9fb;
+  --surface: #ffffff;
+  --sunken: #f1f4f7;
+  --border: #e6ebf0;
+  --border-strong: #d2dae2;
+  --fg: #141a23;
+  --fg-2: #4d5965;
+  --fg-3: #677482;
+  --accent: #00547e;
+  --accent-btn: #006090;
+
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--fg);
+  /* A phone app should not rubber-band the whole page while a sheet scrolls. */
+  overscroll-behavior-y: none;
+}
+
+/* Respect the notch and the home indicator when installed to the Home Screen. */
+.pwa-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pwa-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Tap targets on a phone: no 300ms delay, no blue flash. */
+button,
+a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS zooms the page when a focused input is under 16px. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 480px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
+}

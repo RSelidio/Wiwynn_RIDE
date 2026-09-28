@@ -1,0 +1,49 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "//": "Android emulator reaches the host machine's localhost at 10.0.2.2."
+      }
+    },
+
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "extra": {
+        "apiUrl": "https://shuttle-dev.company.com",
+        "socketUrl": "https://shuttle-dev.company.com"
+      }
+    },
+
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "android": {
+        "//": "APK rather than AAB: these tablets are provisioned by IT directly, not through Play.",
+        "buildType": "apk"
+      },
+      "extra": {
+        "apiUrl": "https://shuttle.company.com",
+        "socketUrl": "https://shuttle.company.com"
+      }
+    }
+  },
+
+  "submit": {
+    "production": {
+      "//": "No store submission — company tablets are enrolled through device management."
+    }
+  }
+}

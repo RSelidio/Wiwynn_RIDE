@@ -1,0 +1,172 @@
+/**
+ * Interaction states the inline styles in `components.tsx` cannot express.
+ * Both web apps import this once from their root layout.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Respect the OS reduce-motion setting: kill the pulse, keep the dot. */
+@keyframes sh-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(128, 208, 0, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(128, 208, 0, 0.28);
+  }
+}
+
+.sh-live-dot {
+  animation: sh-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-live-dot {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.sh-btn {
+  transition:
+    filter 120ms ease,
+    background 120ms ease;
+}
+
+.sh-btn:not(:disabled):hover {
+  filter: brightness(0.94);
+}
+
+.sh-btn:not(:disabled):active {
+  filter: brightness(0.88);
+}
+
+.sh-btn-secondary:not(:disabled):hover,
+.sh-btn-danger:not(:disabled):hover {
+  filter: none;
+  background: #f1f4f7;
+}
+
+[data-theme='dark'] .sh-btn-secondary:not(:disabled):hover,
+[data-theme='dark'] .sh-btn-danger:not(:disabled):hover {
+  background: #232c37;
+}
+
+.sh-btn-ghost:not(:disabled):hover {
+  filter: none;
+  text-decoration: underline;
+}
+
+/* ── Cards, chips, rows ──────────────────────────────────────────────────── */
+
+.sh-card {
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.sh-clickable:hover {
+  border-color: #c2d8e5;
+}
+
+[data-theme='dark'] .sh-clickable:hover {
+  border-color: #2f7aa1;
+}
+
+.sh-chip {
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.sh-chip:hover {
+  border-color: #006090;
+}
+
+.sh-row:hover {
+  background: #f5f9fc;
+}
+
+[data-theme='dark'] .sh-row:hover {
+  background: #1a2430;
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+
+.sh-input::placeholder {
+  color: #8a96a3;
+}
+
+.sh-input:focus {
+  border-color: #006090;
+  box-shadow: 0 0 0 3px rgba(0, 96, 144, 0.16);
+}
+
+/* ── Focus visibility ────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid #006090;
+  outline-offset: 2px;
+}
+
+/* Keyboard users get a ring; mouse users do not, since the row already
+   highlights on hover. */
+.sh-clickable:focus-visible {
+  outline: 2px solid #006090;
+  outline-offset: -2px;
+}
+
+/* ── Scrollbars — thin, so dense tables do not lose a column to chrome ──── */
+
+.sh-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d2dae2 transparent;
+}
+
+.sh-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.sh-scroll::-webkit-scrollbar-thumb {
+  background: #d2dae2;
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.sh-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Print: reports should paper over the app chrome ─────────────────────── */
+
+@media print {
+  .sh-no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}

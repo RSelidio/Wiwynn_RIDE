@@ -1,0 +1,62 @@
+@import '@shuttle/ui/styles.css';
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  --page: #f7f9fb;
+  --surface: #ffffff;
+  --sunken: #f1f4f7;
+  --border: #e6ebf0;
+  --border-strong: #d2dae2;
+  --fg: #141a23;
+  --fg-2: #4d5965;
+  --fg-3: #677482;
+  --accent: #00547e;
+  --accent-btn: #006090;
+
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--fg);
+}
+
+/* Dense table rows: a hairline separator and a hover highlight are enough. */
+.admin-row {
+  border-bottom: 1px solid var(--sunken);
+}
+
+.admin-row:hover {
+  background: #f5f9fc;
+}
+
+[data-theme='dark'] .admin-row:hover {
+  background: #1a2430;
+}
+
+.admin-row[data-selected='true'] {
+  background: #f5f9fc;
+}
+
+[data-theme='dark'] .admin-row[data-selected='true'] {
+  background: #1a2430;
+}
+
+/* Sticky table header that survives the body scrolling under it. */
+.admin-thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--sunken);
+}
+
+/* The gate tablet supports dark mode, so its own surfaces are token-driven
+   and must not inherit the light body background. */
+[data-theme='dark'] {
+  color-scheme: dark;
+}

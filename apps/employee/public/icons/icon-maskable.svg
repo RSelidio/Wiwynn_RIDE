@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Company Shuttle">
+  <!-- Maskable: artwork kept inside the inner 80% safe zone so Android's
+       adaptive-icon mask cannot crop the shuttle. -->
+  <rect width="512" height="512" fill="#006090"/>
+  <rect x="154" y="182" width="204" height="134" rx="22" fill="#ffffff"/>
+  <rect x="176" y="204" width="72" height="48" rx="10" fill="#006090"/>
+  <rect x="264" y="204" width="72" height="48" rx="10" fill="#006090"/>
+  <rect x="176" y="270" width="160" height="14" rx="7" fill="#80d000"/>
+  <circle cx="204" cy="332" r="26" fill="#00344f"/>
+  <circle cx="308" cy="332" r="26" fill="#00344f"/>
+  <circle cx="204" cy="332" r="11" fill="#ffffff"/>
+  <circle cx="308" cy="332" r="11" fill="#ffffff"/>
+</svg>

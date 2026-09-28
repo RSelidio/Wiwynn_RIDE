@@ -1,0 +1,38 @@
+{
+  "name": "company-shuttle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted, open-source-first real-time company shuttle pickup platform",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*",
+    "apps/backend",
+    "apps/employee",
+    "apps/admin"
+  ],
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "build:packages": "npm run build -w @shuttle/shared-types && npm run build -w @shuttle/shared-utils && npm run build -w @shuttle/ui && npm run build -w @shuttle/client",
+    "build": "npm run build:packages && npm run build -w @shuttle/backend && npm run build -w @shuttle/employee && npm run build -w @shuttle/admin",
+    "dev:packages": "concurrently -n types,utils,ui,client -c blue,cyan,magenta,white \"npm:dev -w @shuttle/shared-types\" \"npm:dev -w @shuttle/shared-utils\" \"npm:dev -w @shuttle/ui\" \"npm:dev -w @shuttle/client\"",
+    "dev": "npm run build:packages && concurrently -n pkgs,api,emp,admin -c gray,green,blue,yellow \"npm:dev:packages\" \"npm:dev -w @shuttle/backend\" \"npm:dev -w @shuttle/employee\" \"npm:dev -w @shuttle/admin\"",
+    "dev:api": "npm run build:packages && npm run dev -w @shuttle/backend",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @shuttle/backend",
+    "db:bootstrap-admin": "npm run db:bootstrap-admin -w @shuttle/backend",
+    "db:seed": "npm run db:seed -w @shuttle/backend",
+    "db:seed:test-accounts": "npm run db:seed:test-accounts -w @shuttle/backend",
+    "db:reset": "npm run db:reset -w @shuttle/backend",
+    "clean": "node -e \"const{rmSync}=require('fs');['packages/shared-types/dist','packages/shared-utils/dist','packages/ui/dist','packages/client/dist','apps/backend/dist','apps/employee/.next','apps/admin/.next'].forEach(p=>rmSync(p,{recursive:true,force:true}))\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.2"
+  }
+}
