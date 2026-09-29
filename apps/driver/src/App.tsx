@@ -112,18 +112,23 @@ export function App() {
     });
 
     void (async () => {
-      const session = await driverApi.restore();
-      if (session == null) {
+      try {
+        const session = await driverApi.restore();
+        if (session == null) {
+          setPhase('signed_out');
+          return;
+        }
+        setDriverName(session.driver?.displayName ?? session.user.displayName);
+        await loadPickers();
+        const data = await loadDashboard();
+        // The backend keeps an open shift across JS reloads, but a foreground
+        // location watcher does not. Restore GPS whenever that shift is resumed.
+        if (data?.shift != null) {
+          await resumeGpsForShift(data.shift.shiftId, data.gpsPushIntervalSec ?? config.defaultGpsIntervalSec);
+        }
+      } catch (err) {
+        setError(message(err, 'Could not restore the driver session.'));
         setPhase('signed_out');
-        return;
-      }
-      setDriverName(session.driver?.displayName ?? session.user.displayName);
-      await loadPickers();
-      const data = await loadDashboard();
-      // The backend keeps an open shift across JS reloads, but a foreground
-      // location watcher does not. Restore GPS whenever that shift is resumed.
-      if (data?.shift != null) {
-        await resumeGpsForShift(data.shift.shiftId, data.gpsPushIntervalSec ?? config.defaultGpsIntervalSec);
       }
     })();
 

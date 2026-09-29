@@ -69,8 +69,8 @@
     ],
     "extra": {
       "//": "Set these per environment. EAS build profiles override them; see eas.json.",
-      "apiUrl": "http://192.168.1.106:4000",
-      "socketUrl": "http://192.168.1.106:4000",
+      "apiUrl": "http://10.242.65.107:4000",
+      "socketUrl": "http://10.242.65.107:4000",
       "androidEmulatorApiUrl": "http://10.0.2.2:4000",
       "androidEmulatorSocketUrl": "http://10.0.2.2:4000"
     }

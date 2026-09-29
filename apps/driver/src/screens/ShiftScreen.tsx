@@ -351,7 +351,7 @@ export function ShiftScreen({
 
               <Text style={styles.offerStop}>{offer.pickupStopName}</Text>
               <Text style={styles.offerMeta}>
-                → {offer.destinationStopName} ·{' '}
+                Destination: {offer.destinationStopName} ·{' '}
                 {offer.passengerCount === 1 ? '1 passenger' : `${offer.passengerCount} passengers`}
               </Text>
               <Text style={styles.offerWho}>
@@ -408,7 +408,7 @@ export function ShiftScreen({
                 <View style={styles.flexOne}>
                   <Text style={styles.queueName}>{request.employeeName}</Text>
                   <Text style={styles.queueRoute}>
-                    {request.pickupStopName} → {request.destinationStopName}
+                    Pickup: {request.pickupStopName} · Destination: {request.destinationStopName}
                   </Text>
                 </View>
                 <View style={styles.queueRight}>

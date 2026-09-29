@@ -97,6 +97,16 @@ interface Options {
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Exchange the stored refresh token for a new access token.
  *
@@ -111,7 +121,8 @@ async function refresh(): Promise<boolean> {
       const stored = isWeb ? null : await readRefreshToken();
       if (!isWeb && stored == null) return false;
 
-      const response = await fetch(`${config.apiUrl}/api/auth/refresh`, {
+      let response: Response;
+      response = await fetchWithTimeout(`${config.apiUrl}/api/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -150,7 +161,7 @@ export async function request<T>(path: string, options: Options = {}): Promise<T
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken != null) headers.Authorization = `Bearer ${accessToken}`;
 
-  const response = await fetch(`${config.apiUrl}/api${path}`, {
+  const response = await fetchWithTimeout(`${config.apiUrl}/api${path}`, {
     method,
     headers,
     ...(Platform.OS === 'web' ? { credentials: 'include' as const } : {}),
@@ -230,7 +241,7 @@ export interface GpsFix {
 
 export const driverApi = {
   login: async (email: string, password: string): Promise<AuthSession> => {
-    const response = await fetch(`${config.apiUrl}/api/auth/login`, {
+    const response = await fetchWithTimeout(`${config.apiUrl}/api/auth/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

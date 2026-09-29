@@ -41,16 +41,6 @@ function metersBetween(a: { latitude: number; longitude: number }, b: { latitude
   return 6_371_000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
-function bearingDegrees(from: { latitude: number; longitude: number }, to: { latitude: number; longitude: number }): number {
-  const radians = Math.PI / 180;
-  const lat1 = from.latitude * radians;
-  const lat2 = to.latitude * radians;
-  const dLng = (to.longitude - from.longitude) * radians;
-  const y = Math.sin(dLng) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-  return (Math.atan2(y, x) / radians + 360) % 360;
-}
-
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 }
@@ -190,23 +180,6 @@ export function CampusMap({
               lineJoin: 'round',
             }).addTo(layers);
 
-            // Place arrowheads in the order of the returned road geometry, so
-            // the highlighted navigation direction is immediately apparent.
-            const spacing = Math.max(8, Math.floor(remaining.length / 7));
-            for (let index = spacing; index < remaining.length - 1; index += spacing) {
-              const angle = bearingDegrees(remaining[index]!, remaining[index + 1]!);
-              L.marker([remaining[index]!.latitude, remaining[index]!.longitude], {
-                interactive: false,
-                keyboard: false,
-                zIndexOffset: 800,
-                icon: L.divIcon({
-                  className: '',
-                  html: `<span aria-hidden="true" style="display:grid;place-items:center;width:22px;height:22px;border:2px solid white;border-radius:50%;background:${color};color:white;font:bold 15px Arial,sans-serif;line-height:18px;box-shadow:0 1px 4px #0008;transform:rotate(${angle - 90}deg)">➤</span>`,
-                  iconSize: [22, 22],
-                  iconAnchor: [11, 11],
-                }),
-              }).addTo(layers);
-            }
         }
       });
 
